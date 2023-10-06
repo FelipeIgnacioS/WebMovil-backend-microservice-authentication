@@ -59,7 +59,7 @@ export class AuthService {
             expires_at: new Date(Date.now() + 3600000) // 1 hora
         });
         await this.passwordResetRepository.save(passwordResetEntry);
-        //await this.mailerService.sendPasswordResetMail(requestDto.email, resetToken);
+        //await this.mailerService.sendPasswordResetMail(requestDto.email, resetToken);    //servicio de envio de mail
     }
   
 

@@ -7,20 +7,21 @@ export class MailerService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: '',
       auth: {
-        user: 'youremail@gmail.com',
-        pass: 'yourpassword'
+        user: '',
+        pass: ''
       }
     });
   }
 
   async sendPasswordResetMail(email: string, resetToken: string) {
     const mailOptions = {
-      from: 'youremail@gmail.com',
+      //implementar .env
+      from: '',
       to: email,
-      subject: 'Password Reset',
-      text: `Use this token to reset your password: ${resetToken}`
+      subject: '',
+      text: ` ${resetToken}`
     };
 
     return this.transporter.sendMail(mailOptions);
