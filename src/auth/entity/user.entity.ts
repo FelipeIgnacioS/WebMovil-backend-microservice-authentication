@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Profile } from './profile.entity'; // Asegúrate de ajustar la ruta
 
 @Entity('users')
 export class User {
@@ -12,5 +13,9 @@ export class User {
     email: string;
 
     @Column()
-    password_hash: string;  
+    password_hash: string;
+
+    @OneToOne(() => Profile, profile => profile.user)
+    @JoinColumn({ name: 'profileId' })
+    profile: Profile;
 }

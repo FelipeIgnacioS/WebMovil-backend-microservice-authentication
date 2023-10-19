@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -12,10 +12,12 @@ import { User } from './entity/user.entity';
 import { Token } from './entity/token.entity';
 import { PasswordReset } from './entity/password-reset.entity';
 import { MailerService } from './mail/mailer.service';
+import { ImageUploadMiddleware } from './middleware/image-upload.middleware';
+import { Profile } from './entity/profile.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Token, PasswordReset]),
+        TypeOrmModule.forFeature([User, Token, PasswordReset, Profile]),
         PassportModule,
         JwtModule.register({
             secret: 'SECRET_KEY',  //Clave real
@@ -26,4 +28,10 @@ import { MailerService } from './mail/mailer.service';
     providers: [AuthService, JwtAuthService, JwtStrategy, MailerService],
     exports: []  
 })
-export class AuthModule {}
+export class AuthModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer
+            .apply(ImageUploadMiddleware)
+            .forRoutes({ path: 'profile/upload/:id', method: RequestMethod.POST });
+    }
+}
