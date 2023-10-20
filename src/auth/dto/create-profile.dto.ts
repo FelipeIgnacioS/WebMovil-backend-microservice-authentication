@@ -1,10 +1,12 @@
+import { User } from '../entity/user.entity';
+
 export class CreateProfileDto {
-  userId: number;
+  user: User;
   image?: string;
-  firstName: string;
+  name_: string;
   nickname?: string;
-  jobTitle?: string;
+  job_title?: string;
   organization?: string;
-  location?: string;
-  contact?: string;
+  ubication?: string;
+  phone?: string;
 }

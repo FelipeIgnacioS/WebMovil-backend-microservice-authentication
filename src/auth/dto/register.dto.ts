@@ -1,5 +1,5 @@
 export class RegisterDto {
-    fist_name: string;
+    first_name: string;
     email: string;
     password: string;
   }

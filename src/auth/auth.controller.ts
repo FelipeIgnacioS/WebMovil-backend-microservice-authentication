@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, NotFoundException, HttpException, HttpStatus, Put, UseInterceptors, UploadedFile, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException, HttpException, HttpStatus, Put, UseInterceptors, UploadedFile, UseGuards, Request, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -7,7 +7,8 @@ import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
-
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -58,14 +59,31 @@ export class AuthController {
         return this.authService.createProfile(createProfileDto);
     }
 
-    @UseGuards(JwtAuthGuard)  
-    @Put(':id')
-    async updateProfile(@Param('id') id: number, @Body() updateProfileDto: CreateProfileDto, @Request() req) {
-        if(req.user.id !== id) {
-            throw new UnauthorizedException('You can only update your own profile');
+    @UseGuards(JwtAuthGuard)
+    @Put('profile/:id')
+    async updateProfile(@Param('id') id: string, @Body() updateProfileDto: UpdateProfileDto, @Request() req) {
+        
+        const userId = Number(id);
+        console.log(userId);
+        if (isNaN(userId)) {
+            throw new BadRequestException('Invalid ID provided');
         }
-        return this.authService.updateProfile(id, updateProfileDto);
+        const { name_, nickname, job_title, organization, ubication, phone } = updateProfileDto;
+        // Actualiza el perfil en la tabla profile
+        
+        const profile = await this.authService.updateProfile(userId, updateProfileDto);
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Put('user/:id')
+    async updateUser(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+        const { name, email } = updateUserDto;
+
+        // Actualiza los datos del usuario en la tabla users
+        const user = await this.authService.updateUser(id, updateUserDto);
+
+    }
+
 
     @UseGuards(JwtAuthGuard)
     @Post('upload/:id')

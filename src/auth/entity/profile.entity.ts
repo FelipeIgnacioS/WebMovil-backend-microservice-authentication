@@ -1,36 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToOne } from 'typeorm';
-import { User } from './user.entity'; // Asegúrate de ajustar la ruta a donde se encuentre tu entidad User
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
 
-@Entity('profiles') // Sugerencia: para mantener una nomenclatura similar a 'users'
+@Entity('profiles')
 export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
   @OneToOne(() => User)
-  @JoinColumn({ name: 'userId' }) 
-  user: User; 
-
-  @Column()
-  userId: number;
+  @JoinColumn({ name: 'user_id' }) //nombre igual al de la columna en la tabla
+  user: User;
 
   @Column({ type: 'text', nullable: true })
   image: string;
 
   @Column({ type: 'text' })
-  firstName: string;
+  name_: string;
 
   @Column({ type: 'text', nullable: true })
   nickname: string;
 
   @Column({ type: 'text', nullable: true })
-  jobTitle: string;
+  job_title: string;
 
   @Column({ type: 'text', nullable: true })
   organization: string;
 
   @Column({ type: 'text', nullable: true })
-  location: string;
+  ubication: string;
 
   @Column({ type: 'text', nullable: true })
-  contact: string;
+  phone: string;
 }

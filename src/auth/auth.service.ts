@@ -15,6 +15,8 @@ import { MailerService } from './mail/mailer.service';
 import { PasswordResetRequestDto } from './dto/password-reset-request.dto';
 import { CreateProfileDto } from 'src/auth/dto/create-profile.dto';
 import { Profile } from 'src/auth/entity/profile.entity';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -35,11 +37,20 @@ export class AuthService {
         const savedUser = await this.userRepository.save(user);
 
         //crear perfil para el usuario
+
         const profileData: CreateProfileDto = {
-            firstName: registerDto.fist_name,
-            userId: user.id,
+            user: user,
+            image: null, 
+            name_: registerDto.first_name, 
+            nickname: null,
+            job_title: null,
+            organization: null,
+            ubication: null,
+            phone: null,
         };
-        await this.profileService.create(profileData);
+
+        await this.createProfile(profileData);
+        
         return savedUser
     }
 
@@ -102,24 +113,52 @@ export class AuthService {
     }
 
     //metodos de perfil
-    async findById(id: number): Promise<Profile> {
-        const profile = await this.profileService.findOne({ where: { id: id } });
+    async findById(userId: number): Promise<Profile> {
+        const profile = await this.profileService.findOne({ where: { user: { id: userId } } });
         if (!profile) {
             throw new NotFoundException('Profile not found');
         }
         return profile;
     }
+    
 
     async createProfile(profileData: CreateProfileDto): Promise<Profile> {
         const profile = this.profileService.create(profileData);
-        return this.profileService.save(profile);
+
+        try {
+            return await this.profileService.save(profile);
+        } catch (error) {
+            throw new Error(`Error al crear el perfil: ${error.message}`);
+        }
     }
 
-    async updateProfile(id: number, updatedData: CreateProfileDto): Promise<Profile> {
-        await this.findById(id); // verify if it exists
-        await this.profileService.update(id, updatedData);
-        return this.findById(id);
+
+    async updateProfile(userId: number, updatedData: UpdateProfileDto): Promise<Profile> {
+        const profile = await this.profileService.findOne({ where: { user: { id: userId } } });
+
+        if (!profile) {
+            throw new NotFoundException('Profile not found');
+        }
+
+        // Copia los datos del DTO al perfil.
+        Object.assign(profile, updatedData);
+
+        const updatedProfile = await this.profileService.save(profile);
+        return updatedProfile;
     }
+      
+    async updateUser(id: number, updatedData: UpdateUserDto): Promise<User> {
+        await this.findById(id); // Verificar si existe
+      
+        // Actualiza los datos del usuario en la tabla users
+        const user = await this.userRepository.findOne({where: { id: id }});
+        user.first_name = updatedData.name;
+        user.email = updatedData.email;
+        await this.userRepository.save(user);
+      
+        return user;
+    }
+
 
     async updateProfileImage(userId: number, imagePath: string): Promise<void> {
         await this.profileService.update(userId, { image: imagePath });
