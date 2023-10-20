@@ -44,16 +44,30 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto): Promise<LoginResponseDto> {
-      const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
-      if (!user || !await bcrypt.compare(loginDto.password, user.password_hash)) {
-          throw new UnauthorizedException('Invalid credentials');
-      }
-
-      const token = this.jwtAuthService.createToken(user);
-      return {
-          accessToken: token,
-          expiresIn: new Date(Date.now() + 3600000) // el token expira en una hora
-      };
+        const user = await this.userRepository.findOne({ where: { email: loginDto.email } });
+        if (!user || !await bcrypt.compare(loginDto.password, user.password_hash)) {
+            throw new UnauthorizedException('Invalid credentials');
+        }
+    
+        const token = this.jwtAuthService.createToken(user);
+        const expiresIn = new Date(Date.now() + 3600000); // el token expira en una hora
+    
+        // Guardar el token en la base de datos
+        const tokenEntity = {
+            token: token,
+            type: 'JWT', // Asumiendo que es de tipo JWT, ajusta según sea necesario.
+            expires_at: expiresIn,
+            user_id: user.id
+        };
+    
+        await this.tokenRepository.save(tokenEntity);
+    
+        return {
+            accessToken: token,
+            expiresIn: expiresIn
+        };
+    
+      
   }
 
     async requestPasswordReset(requestDto: PasswordResetRequestDto): Promise<void> {

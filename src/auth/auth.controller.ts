@@ -40,6 +40,13 @@ export class AuthController {
         return this.authService.resetPassword(resetPasswordDto);
     }
 
+    @Get('validate-token')
+    @UseGuards(JwtAuthGuard) 
+    async validateToken() {
+        return { message: 'Token is valid' };
+    }
+
+
     //perifl
     @Get(':id')
     async getProfile(@Param('id') id: number) {

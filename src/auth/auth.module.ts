@@ -14,18 +14,19 @@ import { PasswordReset } from './entity/password-reset.entity';
 import { MailerService } from './mail/mailer.service';
 import { ImageUploadMiddleware } from './middleware/image-upload.middleware';
 import { Profile } from './entity/profile.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, Token, PasswordReset, Profile]),
         PassportModule,
         JwtModule.register({
-            secret: 'SECRET_KEY',  //Clave real
+            secret: 'futbolitos',  //Clave real
             signOptions: { expiresIn: '1h' },
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, JwtAuthService, JwtStrategy, MailerService],
+    providers: [AuthService, JwtAuthService, JwtStrategy, MailerService, ConfigService],
     exports: []  
 })
 export class AuthModule {

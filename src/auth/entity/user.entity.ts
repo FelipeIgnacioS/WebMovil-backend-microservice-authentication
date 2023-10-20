@@ -14,8 +14,4 @@ export class User {
 
     @Column()
     password_hash: string;
-
-    @OneToOne(() => Profile, profile => profile.user)
-    @JoinColumn({ name: 'profileId' })
-    profile: Profile;
 }
