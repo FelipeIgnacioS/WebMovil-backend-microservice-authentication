@@ -112,6 +112,15 @@ export class AuthService {
         await this.passwordResetRepository.delete(passwordResetEntry.id);
     }
 
+    async findUserById(id: number): Promise<Partial<User>> {
+        const user = await this.userRepository.findOne({ where: { id }, select: ['first_name', 'email'] });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+        return user;
+    }
+    
+
     //metodos de perfil
     async findById(userId: number): Promise<Profile> {
         const profile = await this.profileService.findOne({ where: { user: { id: userId } } });
@@ -120,6 +129,26 @@ export class AuthService {
         }
         return profile;
     }
+
+    async getUserDetails(id: number): Promise<any> {
+        const user = await this.userRepository.findOne({ where: { id }, select: ['email'] });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${id} not found`);
+        }
+    
+        const profile = await this.profileService.findOne({ where: { user: { id } } });
+        if (!profile) {
+            throw new NotFoundException('Profile not found');
+        }
+    
+        return {
+            ...profile,
+            email: user.email,
+            name: user.first_name
+        };
+    }
+    
+    
     
 
     async createProfile(profileData: CreateProfileDto): Promise<Profile> {

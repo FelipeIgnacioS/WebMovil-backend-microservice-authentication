@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, NotFoundException, HttpException, HttpStatus, Put, UseInterceptors, UploadedFile, UseGuards, Request, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException, HttpException, HttpStatus, Put, UseInterceptors, UploadedFile, UseGuards, Request, UnauthorizedException, BadRequestException, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -41,10 +41,27 @@ export class AuthController {
         return this.authService.resetPassword(resetPasswordDto);
     }
 
+    @UseGuards(JwtAuthGuard)
+    @Get('user-details')
+    async getUserProfileDetails(@Request() req): Promise<any> {
+        const userId = req.user.userId;
+        return this.authService.getUserDetails(userId);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Get('validate-token')
-    @UseGuards(JwtAuthGuard) 
-    async validateToken() {
-        return { message: 'Token is valid' };
+    getValidateToken(@Req() req) {
+        return {
+            isValid: true,
+            userId: req.user.userId
+        };
+    }
+
+    
+    @UseGuards(JwtAuthGuard)  // Asegura que solo los usuarios autenticados puedan acceder a este endpoint
+    @Get('user/:id')
+    async getUser(@Param('id') id: number) {
+        return this.authService.findUserById(id);
     }
 
 
@@ -69,7 +86,6 @@ export class AuthController {
             throw new BadRequestException('Invalid ID provided');
         }
         const { name_, nickname, job_title, organization, ubication, phone } = updateProfileDto;
-        // Actualiza el perfil en la tabla profile
         
         const profile = await this.authService.updateProfile(userId, updateProfileDto);
     }
@@ -96,4 +112,7 @@ export class AuthController {
         await this.authService.updateProfileImage(id, imagePath);
         return { path: imagePath };
     }
+
+    
+
 }

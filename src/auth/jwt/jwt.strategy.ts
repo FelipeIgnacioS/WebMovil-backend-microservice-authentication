@@ -22,14 +22,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(request: any, payload: any) {
         const jwtToken = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
-    
+        
         const tokenEntry = await this.tokenRepository.findOne({ 
             where: {
-                user_id: payload.sub, 
+                user_id: payload.sub, // Aquí usamos el sub del payload para buscar el token en la base de datos
                 token: jwtToken 
             }
         });
-    
+        
         if (!tokenEntry) {
             throw new UnauthorizedException();
         }
@@ -37,8 +37,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         if (tokenEntry.expires_at.getTime() < currentTimestamp) {
             throw new UnauthorizedException("Token has expired");
         }
-    
-        return { userId: tokenEntry.user_id }; // Devuelve solo la información relevante.
+        console.log(payload.sub);
+        // Ahora, simplemente retorna el ID del usuario desde el payload del token
+        return { userId: payload.sub };
     }
+    
     
 }
