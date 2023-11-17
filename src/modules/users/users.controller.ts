@@ -23,7 +23,7 @@ export class UsersController {
     const user = await this.userService.create(createUserDto);
     console.log("user: ", user)
     const profile = await this.userService.createProfile(user, createUserDto);
-    return { user, profile };
+    return { Message: 'User registered successfully' };
   }
 
   @Post('login')

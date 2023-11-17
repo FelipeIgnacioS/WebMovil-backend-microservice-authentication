@@ -45,6 +45,8 @@ export class UserService {
           first_name: createUserDto.first_name,      
       });
       console.log("profile:", newProfile)
+      //manejar errores
+      
       await this.profileRepository.save(newProfile);
       return newProfile;
     }
@@ -52,11 +54,13 @@ export class UserService {
       //login
     async validateUser(loginUserDto: LoginUserDto): Promise<LoginResponseDto> {
       console.log("Entro al validate user")  
+      console.log("loginUserDto: ", loginUserDto)
       const user = await this.userRepository.findOne({ where: { email: loginUserDto.email } });
-        if (!user || !await bcrypt.compare(loginUserDto.password, user.password_hash)) {
+      console.log("user1: ", user)
+      if (!user || !await bcrypt.compare(loginUserDto.password, user.password_hash)) {
             throw new UnauthorizedException('Invalid credentials');
       }
-      console.log("user: ", user)
+      console.log("user2: ", user)
       const token = this.jwtAuthService.createToken(user);
       const expiresIn = new Date(Date.now() + 3600000); // el token expira en una hora
       
