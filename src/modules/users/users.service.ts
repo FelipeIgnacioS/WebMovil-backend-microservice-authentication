@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { EntityManager, Connection , Transaction } from 'typeorm';
 
 import { User } from '../../infrastructure/database/entities/user.entity';
 import { Profile } from '../../infrastructure/database/entities';
@@ -18,7 +19,6 @@ import { MailService } from '../../mail/mailer.service';
 
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { log } from 'console';
 import { ChangePassword } from './dto/chagePass.dto';
 
 
@@ -29,7 +29,8 @@ export class UserService {
         @InjectRepository(Profile) private profileRepository: Repository<Profile>,
         @InjectRepository(Token) private tokenRepository: Repository<Token>,
         private jwtAuthService: JwtAuthService,
-        private sendEmail: MailService
+        private sendEmail: MailService,
+        private connection: Connection
     ) {}
 
     async create(createUserDto: CreateUserDto): Promise<User> {
@@ -166,32 +167,51 @@ export class UserService {
       }
       
 
-      async updateUser(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
-        const existingUserWithEmail = await this.userRepository.findOne({
-          where: { email: updateUserDto.email },
+      async updateProfileUser(updateUserDto: UpdateUserDto): Promise<{ user: User; profile: Profile }> {
+        return this.connection.transaction(async (manager: EntityManager) => {
+            // Encuentra el usuario y actualiza su email
+            const user = await manager.findOne(User, { where: { id: updateUserDto.userId } });
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+            user.email = updateUserDto.email;
+            await manager.save(user);
+    
+            // Encuentra el perfil asociado y actualiza los detalles
+            const profile = await manager.findOne(Profile, { where: { user: { id: updateUserDto.userId } } });
+            if (!profile) {
+                throw new NotFoundException('Profile not found');
+            }
+    
+            // Actualiza los campos del perfil
+            profile.nickname = updateUserDto.nickname;
+            profile.first_name = updateUserDto.first_name;
+            profile.last_name = updateUserDto.last_name;
+            profile.job_position = updateUserDto.job_position;
+            profile.location = updateUserDto.location;
+            profile.profile_picture = updateUserDto.profile_picture;
+            profile.contact = updateUserDto.contact;
+    
+            await manager.save(profile);
+    
+            return { user, profile };
         });
-        if (existingUserWithEmail && existingUserWithEmail.id !== userId) {
-          throw new UnauthorizedException('Email already in use');
-        }
-    
-        const userToUpdate = await this.userRepository.findOne({ where: { id: userId } });
-        if (!userToUpdate) {
-          throw new UnauthorizedException('User not found');
-        }
-    
-        userToUpdate.email = updateUserDto.email;
-        await this.userRepository.save(userToUpdate);
-    
-        return userToUpdate;
-      }
+    }
      
-    async findOneById(id: number): Promise<User> {
-        const user = await this.userRepository.findOne({ where: { id: id } });
+      async findOneById(id: number): Promise<User> {
+        const user = await this.userRepository.findOne({ 
+          where: { id }, 
+          relations: ['profile'] 
+        });
+      
         if (!user) {
           throw new NotFoundException('User not found');
         }
-        return user;
-    }
+      
+        return user ;
+      }
+      
 
     async changePassword(changePassword: ChangePassword){
       const userId = changePassword.id;
@@ -210,6 +230,14 @@ export class UserService {
       user.password_hash = await bcrypt.hash(changePassword.newPassword, 10);
       await this.userRepository.save(user);
       return {message: 'Password changed successfully'}
+    }
+
+    async findOneByEmail(email: string): Promise<User> {
+      const user = await this.userRepository.findOne({ where: { email: email } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
     }
 
 }

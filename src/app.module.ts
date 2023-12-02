@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 
 
-import { ProfilesModule } from './modules/profiles/profiles.module';
 import { UsersModule } from './modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User, Profile, Token } from 'src/infrastructure/database/entities'
@@ -21,7 +20,6 @@ dotenv.config();
       entities: [User, Profile, Token], // entidades que se usarán
       synchronize: false,
     }),
-    ProfilesModule,
     UsersModule,
   ],
   controllers: [],

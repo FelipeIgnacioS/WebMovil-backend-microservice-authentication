@@ -4,6 +4,8 @@ import {
     Column,
     OneToOne,
     JoinColumn,
+    CreateDateColumn,
+    UpdateDateColumn,
   } from 'typeorm';
   import { User } from './user.entity';
   
@@ -36,5 +38,11 @@ import {
   
     @Column({ nullable: true })
     contact: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
   }
   

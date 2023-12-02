@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, UnauthorizedException, Headers } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UnauthorizedException, Headers, Put } from '@nestjs/common';
 
 import { CreateUserDto } from './dto/create.dto';
 import { LoginUserDto } from './dto/login.dto';
@@ -8,15 +8,14 @@ import { UpdateUserDto } from './dto/update.dto';
 import { ChangePassword } from './dto/chagePass.dto';
 
 import { UserService } from './users.service';
-import { JwtAuthService } from '../../jwt/jwt-auth.service';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private userService: UserService,
-    private jwtAuthService: JwtAuthService,
   ) {}
-
+  
+  //registrar
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto) {
     console.log("Entro al endpoint de register")
@@ -26,6 +25,7 @@ export class UsersController {
     return { Message: 'User registered successfully' };
   }
 
+  //logearse
   @Post('login')
   async login(@Body() loginUserDto: LoginUserDto) {
     const token = await this.userService.validateUser(loginUserDto);
@@ -49,28 +49,30 @@ export class UsersController {
   @Post('request-password-reset')
   async requestPasswordReset(@Body() requestPasswordResetDto: RequestPasswordResetDto) {
     await this.userService.createPasswordResetToken(requestPasswordResetDto);
-    return { message: 'If a user with that email exists, a password reset has been sent' };
+    return { message: 'Si el usuario existe, se ha enviado un codigo de restablecimiento' };
   }
 
+  //reiniciar contraseña con codigo
   @Post('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.userService.resetPassword(resetPasswordDto);
-    return { message: 'Password reset successfully' };
+    return { message: 'Contraseña restablecida correctamente' };
   }
-
+  //eliminar un usuario y profile
   @Delete('/:id')
   async deleteUser(@Param('id') id: string) {
     await this.userService.deleteUser(+id);
-    return { message: 'User deleted successfully' };
+    return { message: 'Usuario eleiminado correctamente' };
   }
-
-  @Post('/update')
+  //actualizar datos del perfil. puede ser tanto como el correo de la tabla users, como los datos personales de la tabla profile
+  @Put('/:id')
   async updateUser(@Body() updateUserDto: UpdateUserDto) {
-    const updatedUser = await this.userService.updateUser(updateUserDto.userId, updateUserDto);
-    return { updatedUser };
+    await this.userService.updateProfileUser (updateUserDto);
+    return { message: 'Usuario actualizado correctamente' };
   }
 
-  @Get(':id') // Asume que la URL será algo como /users/1
+  //obtener todos los datos de un usuario por su id, en tabla user y profile
+  @Get(':id') 
   async getUser(@Param('id') id: string) {
     return await this.userService.findOneById(+id);
   }
@@ -79,6 +81,14 @@ export class UsersController {
   //cambiar contraseña con la sesion iniciada
   @Post('/change-password')
   async changePassword(@Body() changePasswordDto: ChangePassword) {
-    return await this.userService.changePassword(changePasswordDto);
+    await this.userService.changePassword(changePasswordDto);
+    return{ message: 'Contraseña cambiada correctamente' };
   }
+
+  //obtener un usuario por su correo electronico
+  @Get("/email/:email")
+  async getUserByEmail(@Param('email') email: string) {
+    return await this.userService.findOneByEmail(email);
+  }
+
 }
