@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
-import * as handlebars from 'handlebars';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 @Injectable()
 export class MailService {

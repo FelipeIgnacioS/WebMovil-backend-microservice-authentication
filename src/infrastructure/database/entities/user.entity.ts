@@ -4,6 +4,8 @@ import {
     Column,
     OneToOne,
     JoinColumn,
+    UpdateDateColumn,
+    CreateDateColumn,
   } from 'typeorm';
   import { IsEmail, MinLength } from 'class-validator';
   import { Profile } from './profile.entity';
@@ -33,5 +35,12 @@ import {
   
     @OneToOne(() => Token, (token) => token.user)
     token: Token[];
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+    
   }
   

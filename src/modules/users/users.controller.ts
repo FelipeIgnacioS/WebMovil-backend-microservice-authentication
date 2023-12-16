@@ -8,6 +8,7 @@ import { UpdateUserDto } from './dto/update.dto';
 import { ChangePassword } from './dto/chagePass.dto';
 
 import { UserService } from './users.service';
+import { UsersIdsDto } from './dto/UserIds';
 
 @Controller('users')
 export class UsersController {
@@ -67,6 +68,7 @@ export class UsersController {
   //actualizar datos del perfil. puede ser tanto como el correo de la tabla users, como los datos personales de la tabla profile
   @Put('/:id')
   async updateUser(@Body() updateUserDto: UpdateUserDto) {
+    console.log("updateUserDto: ", updateUserDto)
     await this.userService.updateProfileUser (updateUserDto);
     return { message: 'Usuario actualizado correctamente' };
   }
@@ -90,5 +92,19 @@ export class UsersController {
   async getUserByEmail(@Param('email') email: string) {
     return await this.userService.findOneByEmail(email);
   }
+
+  @Post("/email")
+  async getUserByEmail2(@Body('email') email: string) {
+    console.log("email: ", email)
+    return await this.userService.findOneByEmail1(email);
+  }
+
+  //obtener varios usuarios en un solo request
+  @Post('get-users')
+  async getUsers(@Body() userIdsDto: UsersIdsDto) {
+    console.log("userIdsDto: ", userIdsDto)
+    return this.userService.getUsers(userIdsDto);
+  }
+
 
 }

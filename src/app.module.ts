@@ -18,7 +18,7 @@ dotenv.config();
       password: process.env.TYPEORM_PASSWORD, // contraseña
       database: process.env.TYPEORM_DATABASE, // nombre de la base de datos
       entities: [User, Profile, Token], // entidades que se usarán
-      synchronize: false,
+      synchronize: true,
     }),
     UsersModule,
   ],

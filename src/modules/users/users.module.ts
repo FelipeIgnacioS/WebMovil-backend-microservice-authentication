@@ -13,7 +13,7 @@ import { JwtAuthService } from 'src/jwt/jwt-auth.service';
     TypeOrmModule.forFeature([User, Profile, Token]),
     JwtModule.register({
       secret: 'futbolitos',
-      signOptions: { expiresIn: '1h' }
+      signOptions: { expiresIn: '10h' }
     }), 
   ],
   controllers: [UsersController],

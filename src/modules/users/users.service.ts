@@ -20,6 +20,8 @@ import { MailService } from '../../mail/mailer.service';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { ChangePassword } from './dto/chagePass.dto';
+import { log } from 'console';
+import { UsersIdsDto } from './dto/UserIds';
 
 
 @Injectable()
@@ -35,6 +37,12 @@ export class UserService {
 
     async create(createUserDto: CreateUserDto): Promise<User> {
       const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+      //verificar que no exista un usuario con el mismo email
+      const userExists = await this.userRepository.findOne({ where: { email: createUserDto.email } });
+      if (userExists) {
+        throw new UnauthorizedException('Email already exists');
+      }
+      
       const user = this.userRepository.create({ ...createUserDto, password_hash: hashedPassword });
       return this.userRepository.save(user);
   }
@@ -46,7 +54,7 @@ export class UserService {
           first_name: createUserDto.first_name,      
       });
       console.log("profile:", newProfile)
-      //manejar errores
+      
       
       await this.profileRepository.save(newProfile);
       return newProfile;
@@ -63,7 +71,7 @@ export class UserService {
       }
       console.log("user2: ", user)
       const token = this.jwtAuthService.createToken(user);
-      const expiresIn = new Date(Date.now() + 3600000); // el token expira en una hora
+      const expiresIn = new Date(Date.now() + 36000000); // el token expira en una hora
       
       const tokenEntity = new Token()
       tokenEntity.token = token;
@@ -239,6 +247,39 @@ export class UserService {
       }
       return user;
     }
+
+    async getUsers(userIds: UsersIdsDto) {
+      // Crear una consulta con QueryBuilder
+      console.log("userIds: ", userIds)
+      const users = await this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.profile', 'profile')
+      .select(['user.id', 'user.email', 'profile.first_name', 'profile.last_name', 'profile.nickname'])
+      .where('user.id IN (:...ids)', { ids: userIds })
+      .getMany();
+
+  
+      if (!users.length) {
+        throw new NotFoundException('No users found');
+      }
+      console.log("users: ", users)
+      return users.map(user => ({
+        id: user.id,
+        email: user.email,
+        firstName: user.profile?.first_name,
+        lastName: user.profile?.last_name,
+        nickname: user.profile?.nickname,
+      }));
+    }
+
+    async findOneByEmail1(email: string): Promise<number> {
+      const user = await this.userRepository.findOne({ where: { email: email } });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user.id;
+    }
+  
+
 
 }
 
